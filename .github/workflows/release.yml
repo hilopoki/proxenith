@@ -26,6 +26,9 @@ jobs:
           - os: macos-latest
             artifact: proxenith-macos-arm64
             package: none
+          - os: macos-13
+            artifact: proxenith-macos-x86_64
+            package: none
           - os: windows-latest
             artifact: proxenith-windows-x86_64
             package: none
@@ -120,11 +123,9 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -e
-          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
-            gh release delete "$TAG" -R "$REPO" --yes --cleanup-tag
-          fi
           gh release create "$TAG" -R "$REPO" --title "$TAG" \
-            --notes "Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765"
+            --notes "Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765" \
+            || echo "release already exists, uploading assets"
           cd dist
           for f in proxenith-*; do
             gh release upload "$TAG" -R "$REPO" "$f" --clobber
