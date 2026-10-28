@@ -12,15 +12,23 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: proxenith-linux-x86_64
+            deb_arch: amd64
+            rpm_arch: x86_64
+            package: deb-rpm
           - os: ubuntu-24.04-arm
             artifact: proxenith-linux-aarch64
+            deb_arch: arm64
+            rpm_arch: aarch64
+            package: deb-rpm
           - os: macos-latest
             artifact: proxenith-macos-arm64
-          - os: macos-13
-            artifact: proxenith-macos-x86_64
+            package: none
           - os: windows-latest
             artifact: proxenith-windows-x86_64
+            package: none
     runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,12 +43,64 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: Copy-Item dist/proxenith.exe ${{ matrix.artifact }}.exe
+
+      # ---- linux: build .deb and .rpm from the raw binary -------------
+      - name: build deb
+        if: matrix.package == 'deb-rpm'
+        run: |
+          set -e
+          V=${VERSION#v}
+          mkdir -p pkg/DEBIAN pkg/usr/bin
+          cp ${{ matrix.artifact }} pkg/usr/bin/proxenith
+          chmod 755 pkg/usr/bin/proxenith
+          cat > pkg/DEBIAN/control <<EOF
+          Package: proxenith
+          Version: ${V}
+          Architecture: ${{ matrix.deb_arch }}
+          Maintainer: proxenith <proxenith@users.noreply.example.org>
+          Depends: curl
+          Description: xray subscription tester + chained load-balancer
+           Tests xray share links at scale, keeps the alive ones and serves
+           them as a load-balanced local proxy; optional manual upstream.
+          EOF
+          dpkg-deb --build pkg "dist/proxenith_${V}_${{ matrix.deb_arch }}.deb"
+
+      - name: build rpm
+        if: matrix.package == 'deb-rpm'
+        run: |
+          set -e
+          V=${VERSION#v}
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm
+          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS}
+          cp ${{ matrix.artifact }} rpmbuild/SOURCES/proxenith
+          cat > rpmbuild/SPECS/proxenith.spec <<EOF
+          Name:           proxenith
+          Version:        ${V}
+          Release:        1%{?dist}
+          Summary:        xray subscription tester + chained load-balancer
+          License:        WTFPL
+          AutoReqProv:    no
+          %description
+          Tests xray share links at scale, keeps the alive ones and serves
+          them as a load-balanced local proxy; optional manual upstream.
+          %install
+          mkdir -p %{buildroot}/usr/bin
+          install -m 755 %{_sourcedir}/proxenith %{buildroot}/usr/bin/proxenith
+          %files
+          /usr/bin/proxenith
+          EOF
+          rpmbuild -bb --target ${{ matrix.rpm_arch }} \
+            --define "_topdir $(pwd)/rpmbuild" rpmbuild/SPECS/proxenith.spec
+          cp rpmbuild/RPMS/*/*.rpm dist/
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: |
             ${{ matrix.artifact }}
             ${{ matrix.artifact }}.exe
+            dist/*.deb
+            dist/*.rpm
 
   release:
     needs: build

@@ -29,9 +29,11 @@ Download the installer for your OS from
 [Releases](https://github.com/hilopoki/proxenith/releases) and run it:
 
 - **Windows**: `proxenith-windows-x86_64.exe` — run it, no install needed
-- **macOS**: `proxenith-macos-arm64` or `-x86_64` — `chmod +x proxenith-*`
-  then `./proxenith-*` (first run: right-click → Open to pass Gatekeeper)
-- **Linux**: `proxenith-linux-x86_64` or `-aarch64` — `chmod +x` then run
+- **macOS**: `proxenith-macos-arm64` — `chmod +x` then `./proxenith-*`
+  (first run: right-click → Open to pass Gatekeeper)
+- **Linux**: binary `proxenith-linux-x86_64` / `-aarch64` (`chmod +x`), or
+  install the package: `proxenith_<ver>_amd64.deb` / `..._arm64.deb`,
+  `proxenith-<ver>.x86_64.rpm` / `...aarch64.rpm` → `proxenith` on PATH
 
 The binary is fully self-contained: on first launch it downloads the xray
 core into `~/.local/share/proxenith/xray/` (Windows: `%LOCALAPPDATA%\proxenith`)
