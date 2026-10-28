@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -110,27 +113,20 @@ jobs:
         with:
           merge-multiple: true
           path: dist
-      - name: publish release
+      - name: publish to github release
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_URL: ${{ github.server_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
           set -e
-          API="$GH_URL/api/v1/repos/$REPO/releases"
-          rel=$(curl -sf -X POST "$API" -H "Authorization: token $GH_TOKEN" \
-            -H 'Content-Type: application/json' \
-            -d "{\"tag_name\":\"$TAG\",\"name\":\"$TAG\",\"body\":\"Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765\"}")
-          id=$(echo "$rel" | python3 -c 'import json,sys;print(json.load(sys.stdin)["id"])')
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            gh release delete "$TAG" -R "$REPO" --yes --cleanup-tag
+          fi
+          gh release create "$TAG" -R "$REPO" --title "$TAG" \
+            --notes "Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765"
           cd dist
           for f in proxenith-*; do
-            # replace asset if it already exists on the release
-            aid=$(curl -sf "$API/$id/assets" -H "Authorization: token $GH_TOKEN" \
-              | python3 -c "import json,sys;print(next((a['id'] for a in json.load(sys.stdin) if a['name']=='$f'),''))")
-            [ -n "$aid" ] && curl -sf -X DELETE "$API/$id/assets/$aid" \
-              -H "Authorization: token $GH_TOKEN"
-            curl -sf -X POST "$API/$id/assets?name=$f" \
-              -H "Authorization: token $GH_TOKEN" -F "attachment=@$f"
+            gh release upload "$TAG" -R "$REPO" "$f" --clobber
             echo "uploaded $f"
           done
