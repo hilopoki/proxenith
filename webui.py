@@ -368,11 +368,8 @@ def auth_state() -> dict:
 
 # ---------------------------------------------------------------- assets ---
 
-FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<rect width="64" height="64" rx="14" fill="#0f1117"/>
-<rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#2c3040" stroke-width="3"/>
-<path d="M36 8 L16 36 h12 L26 56 L48 26 H34 Z" fill="#3b82f6" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round"/>
-</svg>"""
+# logo art: assets/logo.png (+ downscaled favicon sizes), served at
+# /logo.png and /favicon.png — replaces the old inline SVG bolt.
 
 
 def _pac(port: int) -> str:
@@ -388,7 +385,7 @@ PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" href="/favicon.png">
 <title>proxenith</title>
 <style>
 :root { color-scheme: dark; }
@@ -458,7 +455,7 @@ details.adv summary { cursor: pointer; color: #94a3b8; font-size: .85rem; user-s
 </head>
 <body>
 <button id="langBtn" class="ghost" onclick="toggleLang()">فارسی</button>
-<h1>proxenith</h1>
+<h1><img src="/logo.png" alt="" style="height:2.4rem; vertical-align:-0.6rem; margin-inline-end:.5rem">proxenith</h1>
 
 <!-- first-run wizard: only shown while there are no subscriptions and no results -->
 <div id="wizard" class="card wizard hidden">
@@ -920,8 +917,10 @@ class Handler(BaseHTTPRequestHandler):
         # public endpoints (before the auth gate)
         if path == "/api/session":
             self._json(auth_state())
-        elif path in ("/favicon.ico", "/favicon.svg"):
-            self._send(200, FAVICON.encode(), "image/svg+xml")
+        elif path in ("/favicon.ico", "/favicon.svg", "/favicon.png"):
+            self._send(200, _asset("logo-32.png"), "image/png")
+        elif path == "/logo.png":
+            self._send(200, _asset("logo-256.png"), "image/png")
         elif path == "/assets/qrcode.min.js":
             self._send(200, _asset("qrcode.min.js"), "application/javascript")
         elif not self._authorized():

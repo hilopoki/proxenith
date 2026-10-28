@@ -1,5 +1,7 @@
 # proxenith
 
+<p align="center"><img src="assets/logo.png" width="120" alt="proxenith logo"></p>
+
 Tests xray share links from subscription URLs at scale (TCP prescan +
 sharded xray instances + async probing), keeps the alive ones, and serves
 them as a load-balanced local proxy on one mixed inbound port — optionally
