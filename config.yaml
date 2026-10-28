@@ -1,0 +1,14 @@
+# proxenith — example configuration
+# subscription URLs (raw links or base64, both supported)
+subscriptions:
+  - https://example.com/your-subscription.txt
+probe_timeout: 8
+retries: 1
+concurrency: 64
+listen_port: 10888
+shards: 8
+tcp_prescan_timeout: 3
+tcp_prescan_concurrency: 1000
+probe_concurrency: 500
+# leave empty for a pure load-balancer; set at runtime via the web UI
+upstream_config: ""
