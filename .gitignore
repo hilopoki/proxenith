@@ -3,3 +3,7 @@ __pycache__/
 result*
 .playwright-mcp/
 *.egg-info/
+.venv/
+build/
+dist/
+*.spec.bak

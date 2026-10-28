@@ -1,0 +1,76 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: proxenith-linux-x86_64
+          - os: ubuntu-24.04-arm
+            artifact: proxenith-linux-aarch64
+          - os: macos-latest
+            artifact: proxenith-macos-arm64
+          - os: macos-13
+            artifact: proxenith-macos-x86_64
+          - os: windows-latest
+            artifact: proxenith-windows-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyinstaller pyyaml
+      - run: pyinstaller proxenith.spec
+      - name: rename artifact (posix)
+        if: runner.os != 'Windows'
+        run: cp dist/proxenith ${{ matrix.artifact }}
+      - name: rename artifact (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Copy-Item dist/proxenith.exe ${{ matrix.artifact }}.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - name: publish release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          API="$GH_URL/api/v1/repos/$REPO/releases"
+          rel=$(curl -sf -X POST "$API" -H "Authorization: token $GH_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d "{\"tag_name\":\"$TAG\",\"name\":\"$TAG\",\"body\":\"Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765\"}")
+          id=$(echo "$rel" | python3 -c 'import json,sys;print(json.load(sys.stdin)["id"])')
+          cd dist
+          for f in proxenith-*; do
+            # replace asset if it already exists on the release
+            aid=$(curl -sf "$API/$id/assets" -H "Authorization: token $GH_TOKEN" \
+              | python3 -c "import json,sys;print(next((a['id'] for a in json.load(sys.stdin) if a['name']=='$f'),''))")
+            [ -n "$aid" ] && curl -sf -X DELETE "$API/$id/assets/$aid" \
+              -H "Authorization: token $GH_TOKEN"
+            curl -sf -X POST "$API/$id/assets?name=$f" \
+              -H "Authorization: token $GH_TOKEN" -F "attachment=@$f"
+            echo "uploaded $f"
+          done

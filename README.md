@@ -23,6 +23,25 @@ chained through a manual upstream config so the exit is always your server.
 
 ## Usage
 
+### Regular users (Windows / macOS / Linux)
+
+Download the installer for your OS from
+[Releases](https://github.com/hilopoki/proxenith/releases) and run it:
+
+- **Windows**: `proxenith-windows-x86_64.exe` — run it, no install needed
+- **macOS**: `proxenith-macos-arm64` or `-x86_64` — `chmod +x proxenith-*`
+  then `./proxenith-*` (first run: right-click → Open to pass Gatekeeper)
+- **Linux**: `proxenith-linux-x86_64` or `-aarch64` — `chmod +x` then run
+
+The binary is fully self-contained: on first launch it downloads the xray
+core into `~/.local/share/proxenith/xray/` (Windows: `%LOCALAPPDATA%\proxenith`)
+and opens the web UI in your browser. The UI walks you through setup:
+create a password, paste your subscription URL(s), hit **Test now**, then
+**Connect**. Add your own server link in the Chain section to force the exit
+through it.
+
+### Nix users
+
 1. Edit `config.yaml` — add your subscription URLs (plain list of links or
    base64-encoded, both supported).
 2. Run:
