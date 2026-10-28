@@ -13,6 +13,7 @@
         tester = pkgs.python3.pkgs.buildPythonApplication {
           pname = "proxenith";
           version = "0.1.0";
+          license = pkgs.lib.licenses.wtfpl;
           format = "other";
           src = ./.;
           propagatedBuildInputs = with pkgs.python3Packages; [ pyyaml ];
@@ -29,6 +30,7 @@
 
         packages.webui = pkgs.stdenv.mkDerivation {
           pname = "proxenith-webui";
+          license = pkgs.lib.licenses.wtfpl;
           version = "0.1.0";
           src = ./.;
           nativeBuildInputs = [ pkgs.makeWrapper ];

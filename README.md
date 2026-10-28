@@ -50,3 +50,7 @@ vmess (base64 JSON), vless (incl. reality), trojan, shadowsocks;
 ws / tcp(+http header) / grpc / xhttp / httpupgrade transports; `fm=`
 fragment parameter (clamped to xray-valid ranges, like common client
 exports).
+
+## License
+
+WTFPL — do what the fuck you want to.
