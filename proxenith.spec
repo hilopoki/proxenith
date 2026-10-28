@@ -12,7 +12,7 @@ a = Analysis(
            ("assets/logo-256.png", "assets"),
            ("assets/logo-64.png", "assets"),
            ("assets/logo-32.png", "assets")],
-    hiddenimports=["tester", "chain_runner", "yaml"],
+    hiddenimports=["tester", "chain_runner", "yaml", "certifi"],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],

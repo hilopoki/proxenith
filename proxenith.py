@@ -48,6 +48,7 @@ def xray_binary() -> str | None:
 
 
 def download_xray() -> str | None:
+    import ssl
     key = (sys.platform, _machine())
     asset = _ASSETS.get(key)
     if not asset:
@@ -58,7 +59,14 @@ def download_xray() -> str | None:
     XRAY_DIR.mkdir(parents=True, exist_ok=True)
     zip_path = XRAY_DIR / asset
     print(f"downloading xray: {url}")
-    urllib.request.urlretrieve(url, zip_path)
+    # frozen binaries may not find system CA certs; prefer bundled certifi
+    try:
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        with urllib.request.urlopen(url, context=ctx) as r, open(zip_path, "wb") as f:
+            shutil.copyfileobj(r, f)
+    except ImportError:
+        urllib.request.urlretrieve(url, zip_path)
     with zipfile.ZipFile(zip_path) as z:
         for n in z.namelist():
             if Path(n).name.lower() in ("xray", "xray.exe"):

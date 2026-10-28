@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pyinstaller pyyaml
+      - run: pip install pyinstaller pyyaml certifi
       - run: pyinstaller proxenith.spec
       - name: rename artifact (posix)
         if: runner.os != 'Windows'
