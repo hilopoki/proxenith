@@ -124,8 +124,8 @@ jobs:
             --notes "Binaries for linux / macos / windows. Run the binary — it downloads xray on first start and opens http://127.0.0.1:8765" \
             || echo "release already exists, uploading assets"
           cd dist
-          # bare '*' covers raw binaries (proxenith-*) and packages (proxenith_*.deb/.rpm)
-          for f in proxenith-* proxenith_*.deb proxenith_*.rpm; do
+          # find: covers raw binaries at root and deb/rpm nested under dist/ inside artifacts
+          find . -type f -name 'proxenith*' | while read -r f; do
             gh release upload "$TAG" -R "$REPO" "$f" --clobber
-            echo "uploaded $f"
+            echo "uploaded $(basename "$f")"
           done
