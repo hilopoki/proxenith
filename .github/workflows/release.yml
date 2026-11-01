@@ -26,6 +26,10 @@ jobs:
           - os: macos-latest
             artifact: proxenith-macos-arm64
             package: none
+          # macos-13 (intel) retired 2025-12; macos-15-intel is its official replacement
+          - os: macos-15-intel
+            artifact: proxenith-macos-x86_64
+            package: none
           - os: windows-latest
             artifact: proxenith-windows-x86_64
             package: none
