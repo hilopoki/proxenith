@@ -26,9 +26,6 @@ jobs:
           - os: macos-latest
             artifact: proxenith-macos-arm64
             package: none
-          - os: macos-13
-            artifact: proxenith-macos-x86_64
-            package: none
           - os: windows-latest
             artifact: proxenith-windows-x86_64
             package: none
